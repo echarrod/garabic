@@ -4,6 +4,7 @@ package garabic
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -118,23 +119,23 @@ var normalizable = &unicode.RangeTable{
 		*/
 		//Tatweel => ـ
 		{0x0640, 0x0640, 1},
-		//TanwinFatḥah
+		// TanwinFatḥah
 		{0x064B, 0x64B, 1},
-		//TanwinDammah
+		// TanwinDammah
 		{0x064C, 0x64C, 1},
-		//TanwinKasrah
+		// TanwinKasrah
 		{0x064D, 0x64D, 1},
-		//Fatḥah
+		// Fatḥah
 		{0x064E, 0x64E, 1},
-		//Dammah
+		// Dammah
 		{0x064F, 0x64F, 1},
-		//Kasrah
+		// Kasrah
 		{0x0650, 0x650, 1},
-		//Shaddah
+		// Shaddah
 		{0x0651, 0x651, 1},
-		//Sukun
+		// Sukun
 		{0x0652, 0x652, 1},
-		//DaggerAlif =>
+		// DaggerAlif =>
 		{0x0670, 0x0670, 1},
 	},
 }
@@ -176,9 +177,11 @@ var _tens = []string{
 	"", "", "عشرون", "ثلاثون", "أربعون", "خمسون",
 	"ستون", "سبعون", "ثمانون", "تسعون",
 }
+
 var _hundreds = []string{
 	"", "مئة", "مئتان", "ثلاثمئة", "أربعمئة", "خمسمئة", "ستمئة", "سبعمئة", "ثمانمئة", "تسعمئة",
 }
+
 var _scaleNumbers = []string{
 	"", "ألف", "مليون", "مليار",
 }
@@ -203,7 +206,7 @@ func Normalize(input string) string {
 	runes := bytes.Runes([]byte(input))
 	for i := 0; i < len(runes); i++ {
 		switch runes[i] {
-		//Normalizable letters
+		// Normalizable letters
 		case AlefMad, AlefHamzaAbove, AlefHamzaBelow, AlefWaslah:
 			runes[i] = Alef
 		case DotlessYae:
@@ -253,9 +256,9 @@ func SpellNumber(input int) string {
 		input = input / 1000
 	}
 
-	for i := len(groups) - 1; i >= 0; i-- {
-		//Get each group with its decimal position
-		group := groups[i]
+	for i, group := range slices.Backward(groups) {
+		// Get each group with its decimal position
+
 		if group == 0 {
 			continue
 		}
@@ -275,7 +278,7 @@ func SpellNumber(input int) string {
 			}
 		}
 
-		//Move to scale number
+		// Move to scale number
 		if tens == 0 && zeros == 0 {
 			goto scale
 		}
@@ -327,15 +330,10 @@ func Tashkeel(input string) string {
 
 // contains checks if a string is present in a slice
 func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(s, str)
 }
 
-//Shape will reconstruct arabic text to be connected correctly
+// Shape will reconstruct arabic text to be connected correctly
 func Shape(input string) string {
 	var langSections []string
 	var continousLangAr string
@@ -366,14 +364,14 @@ func Shape(input string) string {
 	var shapedSentence []string
 	for _, section := range langSections {
 		if IsArabic(section) {
-			for _, word := range strings.Fields(section) {
+			for word := range strings.FieldsSeq(section) {
 				shapedSentence = append(shapedSentence, shapeWord(word))
 			}
 		} else {
 			shapedSentence = append(shapedSentence, section)
 		}
 	}
-	//Reverse words
+	// Reverse words
 	for i := len(shapedSentence)/2 - 1; i >= 0; i-- {
 		opp := len(shapedSentence) - 1 - i
 		shapedSentence[i], shapedSentence[opp] = shapedSentence[opp], shapedSentence[i]
@@ -381,7 +379,7 @@ func Shape(input string) string {
 	return strings.Join(shapedSentence, " ")
 }
 
-//shapeWord will reconstruct an arabic word to be connected correctly
+// shapeWord will reconstruct an arabic word to be connected correctly
 func shapeWord(input string) string {
 	if !IsArabic(input) {
 		return input
@@ -389,10 +387,10 @@ func shapeWord(input string) string {
 
 	var shapedInput bytes.Buffer
 
-	//Convert input into runes
+	// Convert input into runes
 	inputRunes := []rune(RemoveHarakat(input))
 	for i := range inputRunes {
-		//Get Bounding back and front letters
+		// Get Bounding back and front letters
 		var backLetter, frontLetter rune
 		if i-1 >= 0 {
 			backLetter = inputRunes[i-1]
@@ -400,7 +398,7 @@ func shapeWord(input string) string {
 		if i != len(inputRunes)-1 {
 			frontLetter = inputRunes[i+1]
 		}
-		//Fix the letter based on bounding letters
+		// Fix the letter based on bounding letters
 		if _, ok := arabicAlphabetShapes[inputRunes[i]]; ok {
 			adjustedLetter := adjustLetter(letterGroup{backLetter, inputRunes[i], frontLetter})
 			shapedInput.WriteRune(adjustedLetter)
@@ -409,7 +407,7 @@ func shapeWord(input string) string {
 		}
 	}
 
-	//In case no Tashkeel deteted, same size of runes
+	// In case no Tashkeel deteted, same size of runes
 	if len([]rune(shapedInput.String())) == len([]rune(input)) {
 		return reverse(shapedInput.String())
 	}
@@ -418,7 +416,7 @@ func shapeWord(input string) string {
 	inputTashkeelRunes := []rune(input)
 
 	letterIndex := 0
-	//Restore Tashkeel
+	// Restore Tashkeel
 	for i := range inputTashkeelRunes {
 		if _, ok := arabicAlphabetShapes[inputTashkeelRunes[i]]; ok {
 			shapedInputTashkeel.WriteRune([]rune(shapedInput.String())[letterIndex])
@@ -442,7 +440,6 @@ func reverse(s string) string {
 
 // adjustLetter will adjust the arabic letter depending on its position.
 func adjustLetter(g letterGroup) rune {
-
 	switch {
 	// Inbetween 2 letters
 	case g.backLetter > 0 && g.frontLetter > 0:
@@ -485,7 +482,7 @@ func IsArabicLetter(ch rune) bool {
 
 // IsArabic checks if the input string contains arabic unicode only.
 func IsArabic(input string) bool {
-	var isArabic = true
+	isArabic := true
 	for _, v := range input {
 		if !unicode.IsSpace(v) && !IsArabicLetter(v) {
 			isArabic = false

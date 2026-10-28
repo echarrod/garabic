@@ -1,5 +1,5 @@
 <p align="center" width="100%">
-     <img alt="Arabic tools for golang - حزمة أدوات للتعامل مع اللغة العربية في لغة go" src=".github/logo.png"> 
+     <img alt="Arabic tools for golang - حزمة أدوات للتعامل مع اللغة العربية في لغة go" src=".github/logo.png">
 </p>
 
 # GArabic
@@ -72,11 +72,11 @@ Here's an example for printing Arabic text on an image:
 
 without the library/ من غير استخدام المكتبة
 
-<img src=".github/before.png"> 
+<img src=".github/before.png">
 
 using the library/ باستخدام المكتبة
 
-<img src=".github/after.png"> 
+<img src=".github/after.png">
 
 
 ```go

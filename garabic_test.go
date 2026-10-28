@@ -7,12 +7,13 @@ import (
 	"testing"
 )
 
-const succeed = "\u2705"
-const failed = "\u274C"
+const (
+	succeed = "\u2705"
+	failed  = "\u274C"
+)
 
 // TestRemoveHarakat.
 func TestRemoveHarakat(t *testing.T) {
-
 	t.Log("Given an arabic string it should be normalized")
 	{
 		for i, tt := range removeHarakatTestCases {
