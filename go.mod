@@ -1,4 +1,4 @@
-module github.com/OpenMellon/garabic
+module github.com/echarrod/garabic
 
 go 1.26.0
 
